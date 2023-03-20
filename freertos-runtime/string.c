@@ -10,12 +10,12 @@
     the terms of the GNU General Public License (version 2) as published by the
     Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -78,133 +78,141 @@
 
 void *memcpy(void *__dest, const void *__src, size_t __n)
 {
-	int i = 0;
-	unsigned char *d = (unsigned char *)__dest, *s = (unsigned char *)__src;
+    int i = 0;
+    unsigned char *d = (unsigned char *)__dest, *s = (unsigned char *)__src;
 
-	for (i = __n >> 3; i > 0; i--) {
-		*d++ = *s++;
-		*d++ = *s++;
-		*d++ = *s++;
-		*d++ = *s++;
-		*d++ = *s++;
-		*d++ = *s++;
-		*d++ = *s++;
-		*d++ = *s++;
-	}
+    for (i = __n >> 3; i > 0; i--)
+    {
+        *d++ = *s++;
+        *d++ = *s++;
+        *d++ = *s++;
+        *d++ = *s++;
+        *d++ = *s++;
+        *d++ = *s++;
+        *d++ = *s++;
+        *d++ = *s++;
+    }
 
-	if (__n & 1 << 2) {
-		*d++ = *s++;
-		*d++ = *s++;
-		*d++ = *s++;
-		*d++ = *s++;
-	}
+    if (__n & 1 << 2)
+    {
+        *d++ = *s++;
+        *d++ = *s++;
+        *d++ = *s++;
+        *d++ = *s++;
+    }
 
-	if (__n & 1 << 1) {
-		*d++ = *s++;
-		*d++ = *s++;
-	}
+    if (__n & 1 << 1)
+    {
+        *d++ = *s++;
+        *d++ = *s++;
+    }
 
-	if (__n & 1)
-		*d++ = *s++;
+    if (__n & 1)
+        *d++ = *s++;
 
-	return __dest;
+    return __dest;
 }
 
 void *memmove(void *__dest, __const void *__src, size_t count)
 {
-	unsigned char *d = __dest;
-	const unsigned char *s = __src;
+    unsigned char *d = __dest;
+    const unsigned char *s = __src;
 
-	if (__dest == __src)
-		return __dest;
+    if (__dest == __src)
+        return __dest;
 
-	if (__dest < __src)
-		return memcpy(__dest, __src, count);
+    if (__dest < __src)
+        return memcpy(__dest, __src, count);
 
-	while (count--)
-		d[count] = s[count];
-	return __dest;
+    while (count--)
+        d[count] = s[count];
+    return __dest;
 }
 
 size_t strlen(const char *s)
 {
-	const char *sc = s;
+    const char *sc = s;
 
-	while (*sc != '\0')
-		sc++;
-	return sc - s;
+    while (*sc != '\0')
+        sc++;
+    return sc - s;
 }
 
 int memcmp(const void *cs, const void *ct, size_t count)
 {
-	const unsigned char *su1 = cs, *su2 = ct, *end = su1 + count;
-	int res = 0;
+    const unsigned char *su1 = cs, *su2 = ct, *end = su1 + count;
+    int res = 0;
 
-	while (su1 < end) {
-		res = *su1++ - *su2++;
-		if (res)
-			break;
-	}
-	return res;
+    while (su1 < end)
+    {
+        res = *su1++ - *su2++;
+        if (res)
+            break;
+    }
+    return res;
 }
 
 #if 0
 int strcmp(const char *cs, const char *ct)
 {
-	unsigned char c1, c2;
-	int res = 0;
+    unsigned char c1, c2;
+    int res = 0;
 
-	do {
-		c1 = *cs++;
-		c2 = *ct++;
-		res = c1 - c2;
-		if (res)
-			break;
-	} while (c1);
-	return res;
+    do
+    {
+        c1 = *cs++;
+        c2 = *ct++;
+        res = c1 - c2;
+        if (res)
+            break;
+    }
+    while (c1);
+    return res;
 }
 #endif
 
 void *memchr(const void *s, int c, size_t count)
 {
-	const unsigned char *p = s;
+    const unsigned char *p = s;
 
-	while (count--)
-		if ((unsigned char)c == *p++)
-			return (void *)(p - 1);
-	return NULL;
+    while (count--)
+        if ((unsigned char)c == *p++)
+            return (void *)(p - 1);
+    return NULL;
 }
 
 #if 0
 char *strchr(const char *s, int c)
 {
-	while (*s != (char)c)
-		if (*s++ == '\0')
-			return NULL;
-	return (char *)s;
+    while (*s != (char)c)
+        if (*s++ == '\0')
+            return NULL;
+    return (char *)s;
 }
 #endif
 
 void *memset(void *s, int c, size_t count)
 {
-  uint8_t u8 = (uint8_t)c;
-  uint32_t u32 = (uint32_t)c;
-  u32 = (u32 << 24) | (u32 << 16) | (u32 << 8) | u32;
-  uint8_t *sp = (uint8_t *)s;
-  /* Handle unaligned head */
-  while (count && ((uintptr_t)sp & 3)) {
-    count--;
-    *sp++ = u8;
-  }
-  /* Faster 32 bit copy */
-  uint32_t *lp = (uint32_t *)(void *)sp;
-  while (count >= 4) {
-    *lp++ = u32;
-    count -= 4;
-  }
-  /* Handle tail */
-  sp = (uint8_t *)(void *)lp;
-  while (count--)
-    *sp++ = u8;
-  return s;
+    uint8_t u8 = (uint8_t)c;
+    uint32_t u32 = (uint32_t)c;
+    u32 = (u32 << 24) | (u32 << 16) | (u32 << 8) | u32;
+    uint8_t *sp = (uint8_t *)s;
+    /* Handle unaligned head */
+    while (count && ((uintptr_t)sp & 3))
+    {
+        count--;
+        *sp++ = u8;
+    }
+    /* Faster 32 bit copy */
+    uint32_t *lp = (uint32_t *)(void *)sp;
+    while (count >= 4)
+    {
+        *lp++ = u32;
+        count -= 4;
+    }
+    /* Handle tail */
+    sp = (uint8_t *)(void *)lp;
+    while (count--)
+        *sp++ = u8;
+    return s;
 }

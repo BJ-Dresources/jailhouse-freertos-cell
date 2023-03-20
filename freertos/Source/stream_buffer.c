@@ -41,7 +41,7 @@
 #include "stream_buffer.h"
 
 #if ( configUSE_TASK_NOTIFICATIONS != 1 )
-    #error configUSE_TASK_NOTIFICATIONS must be set to 1 to build stream_buffer.c
+#error configUSE_TASK_NOTIFICATIONS must be set to 1 to build stream_buffer.c
 #endif
 
 /* Lint e961, e9021 and e750 are suppressed as a MISRA exception justified
@@ -55,7 +55,7 @@
  * that uses task notifications. */
 /*lint -save -e9026 Function like macros allowed and needed here so they can be overridden. */
 #ifndef sbRECEIVE_COMPLETED
-    #define sbRECEIVE_COMPLETED( pxStreamBuffer )                         \
+#define sbRECEIVE_COMPLETED( pxStreamBuffer )                         \
     vTaskSuspendAll();                                                    \
     {                                                                     \
         if( ( pxStreamBuffer )->xTaskWaitingToSend != NULL )              \
@@ -70,7 +70,7 @@
 #endif /* sbRECEIVE_COMPLETED */
 
 #ifndef sbRECEIVE_COMPLETED_FROM_ISR
-    #define sbRECEIVE_COMPLETED_FROM_ISR( pxStreamBuffer,                            \
+#define sbRECEIVE_COMPLETED_FROM_ISR( pxStreamBuffer,                            \
                                           pxHigherPriorityTaskWoken )                \
     {                                                                                \
         UBaseType_t uxSavedInterruptStatus;                                          \
@@ -94,7 +94,7 @@
  * or #defined the notification macro away, them provide a default implementation
  * that uses task notifications. */
 #ifndef sbSEND_COMPLETED
-    #define sbSEND_COMPLETED( pxStreamBuffer )                               \
+#define sbSEND_COMPLETED( pxStreamBuffer )                               \
     vTaskSuspendAll();                                                       \
     {                                                                        \
         if( ( pxStreamBuffer )->xTaskWaitingToReceive != NULL )              \
@@ -109,7 +109,7 @@
 #endif /* sbSEND_COMPLETED */
 
 #ifndef sbSEND_COMPLETE_FROM_ISR
-    #define sbSEND_COMPLETE_FROM_ISR( pxStreamBuffer, pxHigherPriorityTaskWoken )       \
+#define sbSEND_COMPLETE_FROM_ISR( pxStreamBuffer, pxHigherPriorityTaskWoken )       \
     {                                                                                   \
         UBaseType_t uxSavedInterruptStatus;                                             \
                                                                                         \
@@ -150,9 +150,9 @@ typedef struct StreamBufferDef_t                 /*lint !e9058 Style convention 
     uint8_t * pucBuffer;                         /* Points to the buffer itself - that is - the RAM that stores the data passed through the buffer. */
     uint8_t ucFlags;
 
-    #if ( configUSE_TRACE_FACILITY == 1 )
-        UBaseType_t uxStreamBufferNumber; /* Used for tracing purposes. */
-    #endif
+#if ( configUSE_TRACE_FACILITY == 1 )
+    UBaseType_t uxStreamBufferNumber; /* Used for tracing purposes. */
+#endif
 } StreamBuffer_t;
 
 /*
@@ -223,161 +223,161 @@ static size_t prvReadBytesFromBuffer( StreamBuffer_t * pxStreamBuffer,
  * initialise the members of the newly created stream buffer structure.
  */
 static void prvInitialiseNewStreamBuffer( StreamBuffer_t * const pxStreamBuffer,
-                                          uint8_t * const pucBuffer,
-                                          size_t xBufferSizeBytes,
-                                          size_t xTriggerLevelBytes,
-                                          uint8_t ucFlags ) PRIVILEGED_FUNCTION;
+        uint8_t * const pucBuffer,
+        size_t xBufferSizeBytes,
+        size_t xTriggerLevelBytes,
+        uint8_t ucFlags ) PRIVILEGED_FUNCTION;
 
 /*-----------------------------------------------------------*/
 
 #if ( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
 
-    StreamBufferHandle_t xStreamBufferGenericCreate( size_t xBufferSizeBytes,
-                                                     size_t xTriggerLevelBytes,
-                                                     BaseType_t xIsMessageBuffer )
+StreamBufferHandle_t xStreamBufferGenericCreate( size_t xBufferSizeBytes,
+        size_t xTriggerLevelBytes,
+        BaseType_t xIsMessageBuffer )
+{
+    uint8_t * pucAllocatedMemory;
+    uint8_t ucFlags;
+
+    /* In case the stream buffer is going to be used as a message buffer
+     * (that is, it will hold discrete messages with a little meta data that
+     * says how big the next message is) check the buffer will be large enough
+     * to hold at least one message. */
+    if( xIsMessageBuffer == pdTRUE )
     {
-        uint8_t * pucAllocatedMemory;
-        uint8_t ucFlags;
-
-        /* In case the stream buffer is going to be used as a message buffer
-         * (that is, it will hold discrete messages with a little meta data that
-         * says how big the next message is) check the buffer will be large enough
-         * to hold at least one message. */
-        if( xIsMessageBuffer == pdTRUE )
-        {
-            /* Is a message buffer but not statically allocated. */
-            ucFlags = sbFLAGS_IS_MESSAGE_BUFFER;
-            configASSERT( xBufferSizeBytes > sbBYTES_TO_STORE_MESSAGE_LENGTH );
-        }
-        else
-        {
-            /* Not a message buffer and not statically allocated. */
-            ucFlags = 0;
-            configASSERT( xBufferSizeBytes > 0 );
-        }
-
-        configASSERT( xTriggerLevelBytes <= xBufferSizeBytes );
-
-        /* A trigger level of 0 would cause a waiting task to unblock even when
-         * the buffer was empty. */
-        if( xTriggerLevelBytes == ( size_t ) 0 )
-        {
-            xTriggerLevelBytes = ( size_t ) 1;
-        }
-
-        /* A stream buffer requires a StreamBuffer_t structure and a buffer.
-         * Both are allocated in a single call to pvPortMalloc().  The
-         * StreamBuffer_t structure is placed at the start of the allocated memory
-         * and the buffer follows immediately after.  The requested size is
-         * incremented so the free space is returned as the user would expect -
-         * this is a quirk of the implementation that means otherwise the free
-         * space would be reported as one byte smaller than would be logically
-         * expected. */
-        if( xBufferSizeBytes < ( xBufferSizeBytes + 1 + sizeof( StreamBuffer_t ) ) )
-        {
-            xBufferSizeBytes++;
-            pucAllocatedMemory = ( uint8_t * ) pvPortMalloc( xBufferSizeBytes + sizeof( StreamBuffer_t ) ); /*lint !e9079 malloc() only returns void*. */
-        }
-        else
-        {
-            pucAllocatedMemory = NULL;
-        }
-
-        if( pucAllocatedMemory != NULL )
-        {
-            prvInitialiseNewStreamBuffer( ( StreamBuffer_t * ) pucAllocatedMemory,       /* Structure at the start of the allocated memory. */ /*lint !e9087 Safe cast as allocated memory is aligned. */ /*lint !e826 Area is not too small and alignment is guaranteed provided malloc() behaves as expected and returns aligned buffer. */
-                                          pucAllocatedMemory + sizeof( StreamBuffer_t ), /* Storage area follows. */ /*lint !e9016 Indexing past structure valid for uint8_t pointer, also storage area has no alignment requirement. */
-                                          xBufferSizeBytes,
-                                          xTriggerLevelBytes,
-                                          ucFlags );
-
-            traceSTREAM_BUFFER_CREATE( ( ( StreamBuffer_t * ) pucAllocatedMemory ), xIsMessageBuffer );
-        }
-        else
-        {
-            traceSTREAM_BUFFER_CREATE_FAILED( xIsMessageBuffer );
-        }
-
-        return ( StreamBufferHandle_t ) pucAllocatedMemory; /*lint !e9087 !e826 Safe cast as allocated memory is aligned. */
+        /* Is a message buffer but not statically allocated. */
+        ucFlags = sbFLAGS_IS_MESSAGE_BUFFER;
+        configASSERT( xBufferSizeBytes > sbBYTES_TO_STORE_MESSAGE_LENGTH );
     }
+    else
+    {
+        /* Not a message buffer and not statically allocated. */
+        ucFlags = 0;
+        configASSERT( xBufferSizeBytes > 0 );
+    }
+
+    configASSERT( xTriggerLevelBytes <= xBufferSizeBytes );
+
+    /* A trigger level of 0 would cause a waiting task to unblock even when
+     * the buffer was empty. */
+    if( xTriggerLevelBytes == ( size_t ) 0 )
+    {
+        xTriggerLevelBytes = ( size_t ) 1;
+    }
+
+    /* A stream buffer requires a StreamBuffer_t structure and a buffer.
+     * Both are allocated in a single call to pvPortMalloc().  The
+     * StreamBuffer_t structure is placed at the start of the allocated memory
+     * and the buffer follows immediately after.  The requested size is
+     * incremented so the free space is returned as the user would expect -
+     * this is a quirk of the implementation that means otherwise the free
+     * space would be reported as one byte smaller than would be logically
+     * expected. */
+    if( xBufferSizeBytes < ( xBufferSizeBytes + 1 + sizeof( StreamBuffer_t ) ) )
+    {
+        xBufferSizeBytes++;
+        pucAllocatedMemory = ( uint8_t * ) pvPortMalloc( xBufferSizeBytes + sizeof( StreamBuffer_t ) ); /*lint !e9079 malloc() only returns void*. */
+    }
+    else
+    {
+        pucAllocatedMemory = NULL;
+    }
+
+    if( pucAllocatedMemory != NULL )
+    {
+        prvInitialiseNewStreamBuffer( ( StreamBuffer_t * ) pucAllocatedMemory,       /* Structure at the start of the allocated memory. */ /*lint !e9087 Safe cast as allocated memory is aligned. */ /*lint !e826 Area is not too small and alignment is guaranteed provided malloc() behaves as expected and returns aligned buffer. */
+                                      pucAllocatedMemory + sizeof( StreamBuffer_t ), /* Storage area follows. */ /*lint !e9016 Indexing past structure valid for uint8_t pointer, also storage area has no alignment requirement. */
+                                      xBufferSizeBytes,
+                                      xTriggerLevelBytes,
+                                      ucFlags );
+
+        traceSTREAM_BUFFER_CREATE( ( ( StreamBuffer_t * ) pucAllocatedMemory ), xIsMessageBuffer );
+    }
+    else
+    {
+        traceSTREAM_BUFFER_CREATE_FAILED( xIsMessageBuffer );
+    }
+
+    return ( StreamBufferHandle_t ) pucAllocatedMemory; /*lint !e9087 !e826 Safe cast as allocated memory is aligned. */
+}
 
 #endif /* configSUPPORT_DYNAMIC_ALLOCATION */
 /*-----------------------------------------------------------*/
 
 #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
 
-    StreamBufferHandle_t xStreamBufferGenericCreateStatic( size_t xBufferSizeBytes,
-                                                           size_t xTriggerLevelBytes,
-                                                           BaseType_t xIsMessageBuffer,
-                                                           uint8_t * const pucStreamBufferStorageArea,
-                                                           StaticStreamBuffer_t * const pxStaticStreamBuffer )
+StreamBufferHandle_t xStreamBufferGenericCreateStatic( size_t xBufferSizeBytes,
+        size_t xTriggerLevelBytes,
+        BaseType_t xIsMessageBuffer,
+        uint8_t * const pucStreamBufferStorageArea,
+        StaticStreamBuffer_t * const pxStaticStreamBuffer )
+{
+    StreamBuffer_t * const pxStreamBuffer = ( StreamBuffer_t * ) pxStaticStreamBuffer; /*lint !e740 !e9087 Safe cast as StaticStreamBuffer_t is opaque Streambuffer_t. */
+    StreamBufferHandle_t xReturn;
+    uint8_t ucFlags;
+
+    configASSERT( pucStreamBufferStorageArea );
+    configASSERT( pxStaticStreamBuffer );
+    configASSERT( xTriggerLevelBytes <= xBufferSizeBytes );
+
+    /* A trigger level of 0 would cause a waiting task to unblock even when
+     * the buffer was empty. */
+    if( xTriggerLevelBytes == ( size_t ) 0 )
     {
-        StreamBuffer_t * const pxStreamBuffer = ( StreamBuffer_t * ) pxStaticStreamBuffer; /*lint !e740 !e9087 Safe cast as StaticStreamBuffer_t is opaque Streambuffer_t. */
-        StreamBufferHandle_t xReturn;
-        uint8_t ucFlags;
-
-        configASSERT( pucStreamBufferStorageArea );
-        configASSERT( pxStaticStreamBuffer );
-        configASSERT( xTriggerLevelBytes <= xBufferSizeBytes );
-
-        /* A trigger level of 0 would cause a waiting task to unblock even when
-         * the buffer was empty. */
-        if( xTriggerLevelBytes == ( size_t ) 0 )
-        {
-            xTriggerLevelBytes = ( size_t ) 1;
-        }
-
-        if( xIsMessageBuffer != pdFALSE )
-        {
-            /* Statically allocated message buffer. */
-            ucFlags = sbFLAGS_IS_MESSAGE_BUFFER | sbFLAGS_IS_STATICALLY_ALLOCATED;
-        }
-        else
-        {
-            /* Statically allocated stream buffer. */
-            ucFlags = sbFLAGS_IS_STATICALLY_ALLOCATED;
-        }
-
-        /* In case the stream buffer is going to be used as a message buffer
-         * (that is, it will hold discrete messages with a little meta data that
-         * says how big the next message is) check the buffer will be large enough
-         * to hold at least one message. */
-        configASSERT( xBufferSizeBytes > sbBYTES_TO_STORE_MESSAGE_LENGTH );
-
-        #if ( configASSERT_DEFINED == 1 )
-            {
-                /* Sanity check that the size of the structure used to declare a
-                 * variable of type StaticStreamBuffer_t equals the size of the real
-                 * message buffer structure. */
-                volatile size_t xSize = sizeof( StaticStreamBuffer_t );
-                configASSERT( xSize == sizeof( StreamBuffer_t ) );
-            } /*lint !e529 xSize is referenced is configASSERT() is defined. */
-        #endif /* configASSERT_DEFINED */
-
-        if( ( pucStreamBufferStorageArea != NULL ) && ( pxStaticStreamBuffer != NULL ) )
-        {
-            prvInitialiseNewStreamBuffer( pxStreamBuffer,
-                                          pucStreamBufferStorageArea,
-                                          xBufferSizeBytes,
-                                          xTriggerLevelBytes,
-                                          ucFlags );
-
-            /* Remember this was statically allocated in case it is ever deleted
-             * again. */
-            pxStreamBuffer->ucFlags |= sbFLAGS_IS_STATICALLY_ALLOCATED;
-
-            traceSTREAM_BUFFER_CREATE( pxStreamBuffer, xIsMessageBuffer );
-
-            xReturn = ( StreamBufferHandle_t ) pxStaticStreamBuffer; /*lint !e9087 Data hiding requires cast to opaque type. */
-        }
-        else
-        {
-            xReturn = NULL;
-            traceSTREAM_BUFFER_CREATE_STATIC_FAILED( xReturn, xIsMessageBuffer );
-        }
-
-        return xReturn;
+        xTriggerLevelBytes = ( size_t ) 1;
     }
+
+    if( xIsMessageBuffer != pdFALSE )
+    {
+        /* Statically allocated message buffer. */
+        ucFlags = sbFLAGS_IS_MESSAGE_BUFFER | sbFLAGS_IS_STATICALLY_ALLOCATED;
+    }
+    else
+    {
+        /* Statically allocated stream buffer. */
+        ucFlags = sbFLAGS_IS_STATICALLY_ALLOCATED;
+    }
+
+    /* In case the stream buffer is going to be used as a message buffer
+     * (that is, it will hold discrete messages with a little meta data that
+     * says how big the next message is) check the buffer will be large enough
+     * to hold at least one message. */
+    configASSERT( xBufferSizeBytes > sbBYTES_TO_STORE_MESSAGE_LENGTH );
+
+#if ( configASSERT_DEFINED == 1 )
+    {
+        /* Sanity check that the size of the structure used to declare a
+         * variable of type StaticStreamBuffer_t equals the size of the real
+         * message buffer structure. */
+        volatile size_t xSize = sizeof( StaticStreamBuffer_t );
+        configASSERT( xSize == sizeof( StreamBuffer_t ) );
+    } /*lint !e529 xSize is referenced is configASSERT() is defined. */
+#endif /* configASSERT_DEFINED */
+
+    if( ( pucStreamBufferStorageArea != NULL ) && ( pxStaticStreamBuffer != NULL ) )
+    {
+        prvInitialiseNewStreamBuffer( pxStreamBuffer,
+                                      pucStreamBufferStorageArea,
+                                      xBufferSizeBytes,
+                                      xTriggerLevelBytes,
+                                      ucFlags );
+
+        /* Remember this was statically allocated in case it is ever deleted
+         * again. */
+        pxStreamBuffer->ucFlags |= sbFLAGS_IS_STATICALLY_ALLOCATED;
+
+        traceSTREAM_BUFFER_CREATE( pxStreamBuffer, xIsMessageBuffer );
+
+        xReturn = ( StreamBufferHandle_t ) pxStaticStreamBuffer; /*lint !e9087 Data hiding requires cast to opaque type. */
+    }
+    else
+    {
+        xReturn = NULL;
+        traceSTREAM_BUFFER_CREATE_STATIC_FAILED( xReturn, xIsMessageBuffer );
+    }
+
+    return xReturn;
+}
 
 #endif /* ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
 /*-----------------------------------------------------------*/
@@ -392,19 +392,19 @@ void vStreamBufferDelete( StreamBufferHandle_t xStreamBuffer )
 
     if( ( pxStreamBuffer->ucFlags & sbFLAGS_IS_STATICALLY_ALLOCATED ) == ( uint8_t ) pdFALSE )
     {
-        #if ( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
-            {
-                /* Both the structure and the buffer were allocated using a single call
-                * to pvPortMalloc(), hence only one call to vPortFree() is required. */
-                vPortFree( ( void * ) pxStreamBuffer ); /*lint !e9087 Standard free() semantics require void *, plus pxStreamBuffer was allocated by pvPortMalloc(). */
-            }
-        #else
-            {
-                /* Should not be possible to get here, ucFlags must be corrupt.
-                 * Force an assert. */
-                configASSERT( xStreamBuffer == ( StreamBufferHandle_t ) ~0 );
-            }
-        #endif
+#if ( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
+        {
+            /* Both the structure and the buffer were allocated using a single call
+            * to pvPortMalloc(), hence only one call to vPortFree() is required. */
+            vPortFree( ( void * ) pxStreamBuffer ); /*lint !e9087 Standard free() semantics require void *, plus pxStreamBuffer was allocated by pvPortMalloc(). */
+        }
+#else
+        {
+            /* Should not be possible to get here, ucFlags must be corrupt.
+             * Force an assert. */
+            configASSERT( xStreamBuffer == ( StreamBufferHandle_t ) ~0 );
+        }
+#endif
     }
     else
     {
@@ -420,19 +420,19 @@ BaseType_t xStreamBufferReset( StreamBufferHandle_t xStreamBuffer )
     StreamBuffer_t * const pxStreamBuffer = xStreamBuffer;
     BaseType_t xReturn = pdFAIL;
 
-    #if ( configUSE_TRACE_FACILITY == 1 )
-        UBaseType_t uxStreamBufferNumber;
-    #endif
+#if ( configUSE_TRACE_FACILITY == 1 )
+    UBaseType_t uxStreamBufferNumber;
+#endif
 
     configASSERT( pxStreamBuffer );
 
-    #if ( configUSE_TRACE_FACILITY == 1 )
-        {
-            /* Store the stream buffer number so it can be restored after the
-             * reset. */
-            uxStreamBufferNumber = pxStreamBuffer->uxStreamBufferNumber;
-        }
-    #endif
+#if ( configUSE_TRACE_FACILITY == 1 )
+    {
+        /* Store the stream buffer number so it can be restored after the
+         * reset. */
+        uxStreamBufferNumber = pxStreamBuffer->uxStreamBufferNumber;
+    }
+#endif
 
     /* Can only reset a message buffer if there are no tasks blocked on it. */
     taskENTER_CRITICAL();
@@ -448,11 +448,11 @@ BaseType_t xStreamBufferReset( StreamBufferHandle_t xStreamBuffer )
                                               pxStreamBuffer->ucFlags );
                 xReturn = pdPASS;
 
-                #if ( configUSE_TRACE_FACILITY == 1 )
-                    {
-                        pxStreamBuffer->uxStreamBufferNumber = uxStreamBufferNumber;
-                    }
-                #endif
+#if ( configUSE_TRACE_FACILITY == 1 )
+                {
+                    pxStreamBuffer->uxStreamBufferNumber = uxStreamBufferNumber;
+                }
+#endif
 
                 traceSTREAM_BUFFER_RESET( xStreamBuffer );
             }
@@ -465,7 +465,7 @@ BaseType_t xStreamBufferReset( StreamBufferHandle_t xStreamBuffer )
 /*-----------------------------------------------------------*/
 
 BaseType_t xStreamBufferSetTriggerLevel( StreamBufferHandle_t xStreamBuffer,
-                                         size_t xTriggerLevel )
+        size_t xTriggerLevel )
 {
     StreamBuffer_t * const pxStreamBuffer = xStreamBuffer;
     BaseType_t xReturn;
@@ -510,7 +510,8 @@ size_t xStreamBufferSpacesAvailable( StreamBufferHandle_t xStreamBuffer )
         xOriginalTail = pxStreamBuffer->xTail;
         xSpace = pxStreamBuffer->xLength + pxStreamBuffer->xTail;
         xSpace -= pxStreamBuffer->xHead;
-    } while( xOriginalTail != pxStreamBuffer->xTail );
+    }
+    while( xOriginalTail != pxStreamBuffer->xTail );
 
     xSpace -= ( size_t ) 1;
 
@@ -628,7 +629,8 @@ size_t xStreamBufferSend( StreamBufferHandle_t xStreamBuffer,
             traceBLOCKING_ON_STREAM_BUFFER_SEND( xStreamBuffer );
             ( void ) xTaskNotifyWait( ( uint32_t ) 0, ( uint32_t ) 0, NULL, xTicksToWait );
             pxStreamBuffer->xTaskWaitingToSend = NULL;
-        } while( xTaskCheckForTimeOut( &xTimeOut, &xTicksToWait ) == pdFALSE );
+        }
+        while( xTaskCheckForTimeOut( &xTimeOut, &xTicksToWait ) == pdFALSE );
     }
     else
     {
@@ -1077,7 +1079,7 @@ BaseType_t xStreamBufferIsFull( StreamBufferHandle_t xStreamBuffer )
 /*-----------------------------------------------------------*/
 
 BaseType_t xStreamBufferSendCompletedFromISR( StreamBufferHandle_t xStreamBuffer,
-                                              BaseType_t * pxHigherPriorityTaskWoken )
+        BaseType_t * pxHigherPriorityTaskWoken )
 {
     StreamBuffer_t * const pxStreamBuffer = xStreamBuffer;
     BaseType_t xReturn;
@@ -1108,7 +1110,7 @@ BaseType_t xStreamBufferSendCompletedFromISR( StreamBufferHandle_t xStreamBuffer
 /*-----------------------------------------------------------*/
 
 BaseType_t xStreamBufferReceiveCompletedFromISR( StreamBufferHandle_t xStreamBuffer,
-                                                 BaseType_t * pxHigherPriorityTaskWoken )
+        BaseType_t * pxHigherPriorityTaskWoken )
 {
     StreamBuffer_t * const pxStreamBuffer = xStreamBuffer;
     BaseType_t xReturn;
@@ -1230,7 +1232,7 @@ static size_t prvReadBytesFromBuffer( StreamBuffer_t * pxStreamBuffer,
 
 static size_t prvBytesInBuffer( const StreamBuffer_t * const pxStreamBuffer )
 {
-/* Returns the distance between xTail and xHead. */
+    /* Returns the distance between xTail and xHead. */
     size_t xCount;
 
     xCount = pxStreamBuffer->xLength + pxStreamBuffer->xHead;
@@ -1250,23 +1252,23 @@ static size_t prvBytesInBuffer( const StreamBuffer_t * const pxStreamBuffer )
 /*-----------------------------------------------------------*/
 
 static void prvInitialiseNewStreamBuffer( StreamBuffer_t * const pxStreamBuffer,
-                                          uint8_t * const pucBuffer,
-                                          size_t xBufferSizeBytes,
-                                          size_t xTriggerLevelBytes,
-                                          uint8_t ucFlags )
+        uint8_t * const pucBuffer,
+        size_t xBufferSizeBytes,
+        size_t xTriggerLevelBytes,
+        uint8_t ucFlags )
 {
     /* Assert here is deliberately writing to the entire buffer to ensure it can
      * be written to without generating exceptions, and is setting the buffer to a
      * known value to assist in development/debugging. */
-    #if ( configASSERT_DEFINED == 1 )
-        {
-            /* The value written just has to be identifiable when looking at the
-             * memory.  Don't use 0xA5 as that is the stack fill value and could
-             * result in confusion as to what is actually being observed. */
-            const BaseType_t xWriteValue = 0x55;
-            configASSERT( memset( pucBuffer, ( int ) xWriteValue, xBufferSizeBytes ) == pucBuffer );
-        } /*lint !e529 !e438 xWriteValue is only used if configASSERT() is defined. */
-    #endif
+#if ( configASSERT_DEFINED == 1 )
+    {
+        /* The value written just has to be identifiable when looking at the
+         * memory.  Don't use 0xA5 as that is the stack fill value and could
+         * result in confusion as to what is actually being observed. */
+        const BaseType_t xWriteValue = 0x55;
+        configASSERT( memset( pucBuffer, ( int ) xWriteValue, xBufferSizeBytes ) == pucBuffer );
+    } /*lint !e529 !e438 xWriteValue is only used if configASSERT() is defined. */
+#endif
 
     ( void ) memset( ( void * ) pxStreamBuffer, 0x00, sizeof( StreamBuffer_t ) ); /*lint !e9087 memset() requires void *. */
     pxStreamBuffer->pucBuffer = pucBuffer;
@@ -1277,31 +1279,31 @@ static void prvInitialiseNewStreamBuffer( StreamBuffer_t * const pxStreamBuffer,
 
 #if ( configUSE_TRACE_FACILITY == 1 )
 
-    UBaseType_t uxStreamBufferGetStreamBufferNumber( StreamBufferHandle_t xStreamBuffer )
-    {
-        return xStreamBuffer->uxStreamBufferNumber;
-    }
+UBaseType_t uxStreamBufferGetStreamBufferNumber( StreamBufferHandle_t xStreamBuffer )
+{
+    return xStreamBuffer->uxStreamBufferNumber;
+}
 
 #endif /* configUSE_TRACE_FACILITY */
 /*-----------------------------------------------------------*/
 
 #if ( configUSE_TRACE_FACILITY == 1 )
 
-    void vStreamBufferSetStreamBufferNumber( StreamBufferHandle_t xStreamBuffer,
-                                             UBaseType_t uxStreamBufferNumber )
-    {
-        xStreamBuffer->uxStreamBufferNumber = uxStreamBufferNumber;
-    }
+void vStreamBufferSetStreamBufferNumber( StreamBufferHandle_t xStreamBuffer,
+        UBaseType_t uxStreamBufferNumber )
+{
+    xStreamBuffer->uxStreamBufferNumber = uxStreamBufferNumber;
+}
 
 #endif /* configUSE_TRACE_FACILITY */
 /*-----------------------------------------------------------*/
 
 #if ( configUSE_TRACE_FACILITY == 1 )
 
-    uint8_t ucStreamBufferGetStreamBufferType( StreamBufferHandle_t xStreamBuffer )
-    {
-        return( xStreamBuffer->ucFlags & sbFLAGS_IS_MESSAGE_BUFFER );
-    }
+uint8_t ucStreamBufferGetStreamBufferType( StreamBufferHandle_t xStreamBuffer )
+{
+    return( xStreamBuffer->ucFlags & sbFLAGS_IS_MESSAGE_BUFFER );
+}
 
 #endif /* configUSE_TRACE_FACILITY */
 /*-----------------------------------------------------------*/

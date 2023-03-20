@@ -80,12 +80,12 @@ void MPU_vTaskSetApplicationTaskTag( TaskHandle_t xTask,
                                      TaskHookFunction_t pxHookFunction ) FREERTOS_SYSTEM_CALL;
 TaskHookFunction_t MPU_xTaskGetApplicationTaskTag( TaskHandle_t xTask ) FREERTOS_SYSTEM_CALL;
 void MPU_vTaskSetThreadLocalStoragePointer( TaskHandle_t xTaskToSet,
-                                            BaseType_t xIndex,
-                                            void * pvValue ) FREERTOS_SYSTEM_CALL;
+        BaseType_t xIndex,
+        void * pvValue ) FREERTOS_SYSTEM_CALL;
 void * MPU_pvTaskGetThreadLocalStoragePointer( TaskHandle_t xTaskToQuery,
-                                               BaseType_t xIndex ) FREERTOS_SYSTEM_CALL;
+        BaseType_t xIndex ) FREERTOS_SYSTEM_CALL;
 BaseType_t MPU_xTaskCallApplicationTaskHook( TaskHandle_t xTask,
-                                             void * pvParameter ) FREERTOS_SYSTEM_CALL;
+        void * pvParameter ) FREERTOS_SYSTEM_CALL;
 TaskHandle_t MPU_xTaskGetIdleTaskHandle( void ) FREERTOS_SYSTEM_CALL;
 UBaseType_t MPU_uxTaskGetSystemState( TaskStatus_t * const pxTaskStatusArray,
                                       const UBaseType_t uxArraySize,
@@ -108,10 +108,10 @@ uint32_t MPU_ulTaskGenericNotifyTake( UBaseType_t uxIndexToWaitOn,
                                       BaseType_t xClearCountOnExit,
                                       TickType_t xTicksToWait ) FREERTOS_SYSTEM_CALL;
 BaseType_t MPU_xTaskGenericNotifyStateClear( TaskHandle_t xTask,
-                                             UBaseType_t uxIndexToClear ) FREERTOS_SYSTEM_CALL;
+        UBaseType_t uxIndexToClear ) FREERTOS_SYSTEM_CALL;
 uint32_t MPU_ulTaskGenericNotifyValueClear( TaskHandle_t xTask,
-                                            UBaseType_t uxIndexToClear,
-                                            uint32_t ulBitsToClear ) FREERTOS_SYSTEM_CALL;
+        UBaseType_t uxIndexToClear,
+        uint32_t ulBitsToClear ) FREERTOS_SYSTEM_CALL;
 BaseType_t MPU_xTaskIncrementTick( void ) FREERTOS_SYSTEM_CALL;
 TaskHandle_t MPU_xTaskGetCurrentTaskHandle( void ) FREERTOS_SYSTEM_CALL;
 void MPU_vTaskSetTimeOutState( TimeOut_t * const pxTimeOut ) FREERTOS_SYSTEM_CALL;
@@ -139,15 +139,15 @@ UBaseType_t MPU_uxQueueSpacesAvailable( const QueueHandle_t xQueue ) FREERTOS_SY
 void MPU_vQueueDelete( QueueHandle_t xQueue ) FREERTOS_SYSTEM_CALL;
 QueueHandle_t MPU_xQueueCreateMutex( const uint8_t ucQueueType ) FREERTOS_SYSTEM_CALL;
 QueueHandle_t MPU_xQueueCreateMutexStatic( const uint8_t ucQueueType,
-                                           StaticQueue_t * pxStaticQueue ) FREERTOS_SYSTEM_CALL;
+        StaticQueue_t * pxStaticQueue ) FREERTOS_SYSTEM_CALL;
 QueueHandle_t MPU_xQueueCreateCountingSemaphore( const UBaseType_t uxMaxCount,
-                                                 const UBaseType_t uxInitialCount ) FREERTOS_SYSTEM_CALL;
+        const UBaseType_t uxInitialCount ) FREERTOS_SYSTEM_CALL;
 QueueHandle_t MPU_xQueueCreateCountingSemaphoreStatic( const UBaseType_t uxMaxCount,
-                                                       const UBaseType_t uxInitialCount,
-                                                       StaticQueue_t * pxStaticQueue ) FREERTOS_SYSTEM_CALL;
+        const UBaseType_t uxInitialCount,
+        StaticQueue_t * pxStaticQueue ) FREERTOS_SYSTEM_CALL;
 TaskHandle_t MPU_xQueueGetMutexHolder( QueueHandle_t xSemaphore ) FREERTOS_SYSTEM_CALL;
 BaseType_t MPU_xQueueTakeMutexRecursive( QueueHandle_t xMutex,
-                                         TickType_t xTicksToWait ) FREERTOS_SYSTEM_CALL;
+        TickType_t xTicksToWait ) FREERTOS_SYSTEM_CALL;
 BaseType_t MPU_xQueueGiveMutexRecursive( QueueHandle_t pxMutex ) FREERTOS_SYSTEM_CALL;
 void MPU_vQueueAddToRegistry( QueueHandle_t xQueue,
                               const char * pcName ) FREERTOS_SYSTEM_CALL;
@@ -157,17 +157,17 @@ QueueHandle_t MPU_xQueueGenericCreate( const UBaseType_t uxQueueLength,
                                        const UBaseType_t uxItemSize,
                                        const uint8_t ucQueueType ) FREERTOS_SYSTEM_CALL;
 QueueHandle_t MPU_xQueueGenericCreateStatic( const UBaseType_t uxQueueLength,
-                                             const UBaseType_t uxItemSize,
-                                             uint8_t * pucQueueStorage,
-                                             StaticQueue_t * pxStaticQueue,
-                                             const uint8_t ucQueueType ) FREERTOS_SYSTEM_CALL;
+        const UBaseType_t uxItemSize,
+        uint8_t * pucQueueStorage,
+        StaticQueue_t * pxStaticQueue,
+        const uint8_t ucQueueType ) FREERTOS_SYSTEM_CALL;
 QueueSetHandle_t MPU_xQueueCreateSet( const UBaseType_t uxEventQueueLength ) FREERTOS_SYSTEM_CALL;
 BaseType_t MPU_xQueueAddToSet( QueueSetMemberHandle_t xQueueOrSemaphore,
                                QueueSetHandle_t xQueueSet ) FREERTOS_SYSTEM_CALL;
 BaseType_t MPU_xQueueRemoveFromSet( QueueSetMemberHandle_t xQueueOrSemaphore,
                                     QueueSetHandle_t xQueueSet ) FREERTOS_SYSTEM_CALL;
 QueueSetMemberHandle_t MPU_xQueueSelectFromSet( QueueSetHandle_t xQueueSet,
-                                                const TickType_t xTicksToWait ) FREERTOS_SYSTEM_CALL;
+        const TickType_t xTicksToWait ) FREERTOS_SYSTEM_CALL;
 BaseType_t MPU_xQueueGenericReset( QueueHandle_t xQueue,
                                    BaseType_t xNewQueue ) FREERTOS_SYSTEM_CALL;
 void MPU_vQueueSetQueueNumber( QueueHandle_t xQueue,
@@ -245,15 +245,15 @@ BaseType_t MPU_xStreamBufferReset( StreamBufferHandle_t xStreamBuffer ) FREERTOS
 size_t MPU_xStreamBufferSpacesAvailable( StreamBufferHandle_t xStreamBuffer ) FREERTOS_SYSTEM_CALL;
 size_t MPU_xStreamBufferBytesAvailable( StreamBufferHandle_t xStreamBuffer ) FREERTOS_SYSTEM_CALL;
 BaseType_t MPU_xStreamBufferSetTriggerLevel( StreamBufferHandle_t xStreamBuffer,
-                                             size_t xTriggerLevel ) FREERTOS_SYSTEM_CALL;
+        size_t xTriggerLevel ) FREERTOS_SYSTEM_CALL;
 StreamBufferHandle_t MPU_xStreamBufferGenericCreate( size_t xBufferSizeBytes,
-                                                     size_t xTriggerLevelBytes,
-                                                     BaseType_t xIsMessageBuffer ) FREERTOS_SYSTEM_CALL;
+        size_t xTriggerLevelBytes,
+        BaseType_t xIsMessageBuffer ) FREERTOS_SYSTEM_CALL;
 StreamBufferHandle_t MPU_xStreamBufferGenericCreateStatic( size_t xBufferSizeBytes,
-                                                           size_t xTriggerLevelBytes,
-                                                           BaseType_t xIsMessageBuffer,
-                                                           uint8_t * const pucStreamBufferStorageArea,
-                                                           StaticStreamBuffer_t * const pxStaticStreamBuffer ) FREERTOS_SYSTEM_CALL;
+        size_t xTriggerLevelBytes,
+        BaseType_t xIsMessageBuffer,
+        uint8_t * const pucStreamBufferStorageArea,
+        StaticStreamBuffer_t * const pxStaticStreamBuffer ) FREERTOS_SYSTEM_CALL;
 
 
 
